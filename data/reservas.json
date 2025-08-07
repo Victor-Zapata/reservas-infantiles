@@ -1,0 +1,60 @@
+[
+  {
+    "niños": [
+      {
+        "nombre": "victor zapata",
+        "dni": "28372997",
+        "edad": 3,
+        "condiciones": "asma",
+        "tieneCondiciones": true,
+        "horas": 2
+      }
+    ],
+    "adulto": {
+      "nombre": "Mino Moretti",
+      "dni": "30901104",
+      "telefono": "3516708539",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-07T21:52:07.054Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "victor zapata",
+        "dni": "28372997",
+        "edad": 3,
+        "condiciones": "asma",
+        "tieneCondiciones": true,
+        "horas": 2
+      }
+    ],
+    "adulto": {
+      "nombre": "Mino Moretti",
+      "dni": "30901104",
+      "telefono": "3516708539",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-07T21:55:51.332Z"
+  }
+]

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Niño = {
   nombre: string;
@@ -28,7 +28,7 @@ type DatosAdulto = {
 
 type Autorizaciones = {
   consentimiento: boolean;
-  usoImagen: 'si' | 'no';
+  usoImagen: "si" | "no";
   terminos: boolean;
 };
 
@@ -37,15 +37,17 @@ export default function ConfirmacionPage() {
 
   const [niños, setNiños] = useState<Niño[]>([]);
   const [adulto, setAdulto] = useState<DatosAdulto | null>(null);
-  const [autorizaciones, setAutorizaciones] = useState<Autorizaciones | null>(null);
+  const [autorizaciones, setAutorizaciones] = useState<Autorizaciones | null>(
+    null
+  );
 
   useEffect(() => {
-    const datosNiños = localStorage.getItem('datosNiños');
-    const datosAdulto = localStorage.getItem('datosAdulto');
-    const datosAutorizaciones = localStorage.getItem('autorizaciones');
+    const datosNiños = localStorage.getItem("datosNiños");
+    const datosAdulto = localStorage.getItem("datosAdulto");
+    const datosAutorizaciones = localStorage.getItem("autorizaciones");
 
     if (!datosNiños || !datosAdulto || !datosAutorizaciones) {
-      router.push('/reserva');
+      router.push("/reserva");
       return;
     }
 
@@ -54,14 +56,28 @@ export default function ConfirmacionPage() {
     setAutorizaciones(JSON.parse(datosAutorizaciones));
   }, [router]);
 
-  const handleFinalizar = () => {
-    // Acá iría la lógica de envío real o redirección a Mercado Pago
-    console.log('Datos completos:', { niños, adulto, autorizaciones });
+  const handleFinalizar = async () => {
+    const datos = {
+      niños,
+      adulto,
+      autorizaciones,
+    };
 
-    // Simular finalización
-    alert('¡Reserva registrada con éxito!');
-    localStorage.clear();
-    router.push('/');
+    try {
+      const res = await fetch("/api/reservas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos),
+      });
+
+      if (!res.ok) throw new Error("Error en el backend");
+
+      // Guardado OK: ir al pago
+      router.push("/reserva/pago");
+    } catch (err) {
+      console.error("Error al guardar reserva:", err);
+      alert("Ocurrió un error al guardar la reserva. Intente nuevamente.");
+    }
   };
 
   if (!niños.length || !adulto || !autorizaciones) {
@@ -75,8 +91,11 @@ export default function ConfirmacionPage() {
       <h4 className="text-success mb-3">Niños/as registrados</h4>
       {niños.map((n, i) => (
         <div key={i} className="mb-3 border rounded p-3">
-          <strong>#{i + 1}</strong> {n.nombre} - DNI: {n.dni} - Edad: {n.edad} años<br />
-          Horas: {n.horas} hora(s)<br />
+          <strong>#{i + 1}</strong> {n.nombre} - DNI: {n.dni} - Edad: {n.edad}{" "}
+          años
+          <br />
+          Horas: {n.horas} hora(s)
+          <br />
           {n.tieneCondiciones && <em>Condición: {n.condiciones}</em>}
         </div>
       ))}
@@ -84,16 +103,22 @@ export default function ConfirmacionPage() {
       <h4 className="text-success mb-3 mt-4">Adulto responsable</h4>
       <div className="border rounded p-3 mb-3">
         <p>
-          <strong>Nombre:</strong> {adulto.nombre}<br />
-          <strong>DNI:</strong> {adulto.dni}<br />
+          <strong>Nombre:</strong> {adulto.nombre}
+          <br />
+          <strong>DNI:</strong> {adulto.dni}
+          <br />
           <strong>Teléfono:</strong> {adulto.telefono}
         </p>
         {!adulto.retiraElMismo && (
           <>
-            <h6 className="text-secondary mt-3">Persona autorizada a retirar</h6>
+            <h6 className="text-secondary mt-3">
+              Persona autorizada a retirar
+            </h6>
             <p>
-              <strong>Nombre:</strong> {adulto.contactoAlternativo.nombre}<br />
-              <strong>DNI:</strong> {adulto.contactoAlternativo.dni}<br />
+              <strong>Nombre:</strong> {adulto.contactoAlternativo.nombre}
+              <br />
+              <strong>DNI:</strong> {adulto.contactoAlternativo.dni}
+              <br />
               <strong>Teléfono:</strong> {adulto.contactoAlternativo.telefono}
             </p>
           </>
@@ -103,16 +128,18 @@ export default function ConfirmacionPage() {
       <h4 className="text-success mb-3 mt-4">Autorizaciones</h4>
       <ul>
         <li>
-          Consentimiento informado:{' '}
-          {autorizaciones.consentimiento ? '✅ Aceptado' : '❌ No aceptado'}
+          Consentimiento informado:{" "}
+          {autorizaciones.consentimiento ? "✅ Aceptado" : "❌ No aceptado"}
         </li>
         <li>
-          Uso de imagen:{' '}
-          {autorizaciones.usoImagen === 'si' ? '✅ Autorizado' : '🚫 No autorizado'}
+          Uso de imagen:{" "}
+          {autorizaciones.usoImagen === "si"
+            ? "✅ Autorizado"
+            : "🚫 No autorizado"}
         </li>
         <li>
-          Términos y condiciones:{' '}
-          {autorizaciones.terminos ? '✅ Aceptados' : '❌ No aceptados'}
+          Términos y condiciones:{" "}
+          {autorizaciones.terminos ? "✅ Aceptados" : "❌ No aceptados"}
         </li>
       </ul>
 
