@@ -1,22 +1,24 @@
+// app/reserva/pago/page.tsx
 "use client";
 
 import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function PagoPage() {
+  const searchParams = useSearchParams();
+  const estado = searchParams.get("estado"); // failure | pending
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   const iniciarPago = async () => {
     try {
-      const res = await fetch("/api/mercadopago", {
-        method: "POST",
-      });
-
+      const res = await fetch("/api/mercadopago", { method: "POST" });
       const data = await res.json();
 
-      if (data.init_point) {
-        window.location.href = data.init_point; // redirigir a Mercado Pago
+      if (data?.init_point) {
+        window.location.href = data.init_point;
       } else {
         alert("No se pudo iniciar el pago. Intente nuevamente.");
       }
@@ -33,9 +35,20 @@ export default function PagoPage() {
         Para confirmar tu turno, aboná una seña de <strong>$5000 ARS</strong>.
       </p>
       <p className="text-muted">
-        En caso de no concurrir, la seña quedará como crédito para una próxima
-        visita.
+        Si no asistís por cualquier motivo, la seña queda como crédito para una
+        próxima visita.
       </p>
+
+      {estado === "failure" && (
+        <div className="alert alert-danger mt-3">
+          No pudimos procesar el pago. Probá nuevamente.
+        </div>
+      )}
+      {estado === "pending" && (
+        <div className="alert alert-warning mt-3">
+          Tu pago está pendiente. Te avisaremos cuando se acredite.
+        </div>
+      )}
 
       <button className="btn btn-success btn-lg mt-4" onClick={iniciarPago}>
         Pagar con Mercado Pago
