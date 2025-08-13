@@ -2,126 +2,23 @@
   {
     "niños": [
       {
-        "nombre": "victor zapata",
-        "dni": "28372997",
-        "edad": 3,
-        "condiciones": "asma",
-        "tieneCondiciones": true,
-        "horas": 2
-      }
-    ],
-    "adulto": {
-      "nombre": "Mino Moretti",
-      "dni": "30901104",
-      "telefono": "3516708539",
-      "retiraElMismo": true,
-      "contactoAlternativo": {
-        "nombre": "",
-        "dni": "",
-        "telefono": ""
-      }
-    },
-    "autorizaciones": {
-      "consentimiento": true,
-      "usoImagen": "si",
-      "terminos": true
-    },
-    "fecha": "2025-08-07T21:52:07.054Z"
-  },
-  {
-    "niños": [
-      {
-        "nombre": "victor zapata",
-        "dni": "28372997",
-        "edad": 3,
-        "condiciones": "asma",
-        "tieneCondiciones": true,
-        "horas": 2
-      }
-    ],
-    "adulto": {
-      "nombre": "Mino Moretti",
-      "dni": "30901104",
-      "telefono": "3516708539",
-      "retiraElMismo": true,
-      "contactoAlternativo": {
-        "nombre": "",
-        "dni": "",
-        "telefono": ""
-      }
-    },
-    "autorizaciones": {
-      "consentimiento": true,
-      "usoImagen": "si",
-      "terminos": true
-    },
-    "fecha": "2025-08-07T21:55:51.332Z"
-  },
-  {
-    "niños": [
-      {
         "nombre": "Olivia Zapata",
-        "dni": "30901104",
-        "edad": 4,
-        "condiciones": "duerme mucho",
-        "tieneCondiciones": true,
-        "horas": 2
-      },
-      {
-        "nombre": "Lautaro",
-        "dni": "7837853785",
-        "edad": 1,
-        "condiciones": "",
-        "tieneCondiciones": false,
-        "horas": 1
-      }
-    ],
-    "adulto": {
-      "nombre": "Victor Zapata",
-      "dni": "28372997",
-      "telefono": "3516708539",
-      "retiraElMismo": false,
-      "contactoAlternativo": {
-        "nombre": "Paola",
-        "dni": "Moretti",
-        "telefono": "87837837563"
-      }
-    },
-    "autorizaciones": {
-      "consentimiento": true,
-      "usoImagen": "no",
-      "terminos": true
-    },
-    "fecha": "2025-08-08T01:44:49.341Z"
-  },
-  {
-    "niños": [
-      {
-        "nombre": "Olivia Zapata Moretti",
         "dni": "58773656",
         "edad": 4,
-        "condiciones": "duerme mucho",
+        "condiciones": "es mi gorda",
         "tieneCondiciones": true,
-        "horas": 1
-      },
-      {
-        "nombre": "Lautaro Alessandrini",
-        "dni": "45375375",
-        "edad": 3,
-        "condiciones": "",
-        "tieneCondiciones": false,
-        "horas": 1
+        "horas": 2
       }
     ],
     "adulto": {
       "nombre": "Paola Moretti",
       "dni": "30901104",
       "telefono": "3516708539",
-      "retiraElMismo": false,
+      "retiraElMismo": true,
       "contactoAlternativo": {
-        "nombre": "Victor Zapata",
-        "dni": "28372997",
-        "telefono": "3516708539"
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
       }
     },
     "autorizaciones": {
@@ -129,21 +26,79 @@
       "usoImagen": "si",
       "terminos": true
     },
-    "fecha": "2025-08-08T02:09:16.475Z"
+    "fecha": "2025-08-10T19:30:01.005Z"
   },
   {
     "niños": [
       {
-        "nombre": "Olivia Zapata",
-        "dni": "58773656",
-        "edad": 4,
-        "condiciones": "es hermosa",
-        "tieneCondiciones": true,
+        "nombre": "oerbgqe",
+        "dni": "73252752",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
         "horas": 1
       }
     ],
     "adulto": {
-      "nombre": "Victor zapata",
+      "nombre": "fghnfgn",
+      "dni": "7827527852",
+      "telefono": "75275275",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-10T22:43:57.315Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "rj,gju,",
+        "dni": "7327837",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "ghjmghjm",
+      "dni": "753753",
+      "telefono": "7532753",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-10T23:25:07.499Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "la tota",
+        "dni": "30901104",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "papa vic",
       "dni": "28372997",
       "telefono": "3516708539",
       "retiraElMismo": true,
@@ -158,35 +113,6 @@
       "usoImagen": "si",
       "terminos": true
     },
-    "fecha": "2025-08-08T02:24:26.318Z"
-  },
-  {
-    "niños": [
-      {
-        "nombre": "vweve",
-        "dni": "78287527",
-        "edad": 1,
-        "condiciones": "",
-        "tieneCondiciones": false,
-        "horas": 1
-      }
-    ],
-    "adulto": {
-      "nombre": "rtbert",
-      "dni": "78278",
-      "telefono": "278278",
-      "retiraElMismo": true,
-      "contactoAlternativo": {
-        "nombre": "",
-        "dni": "",
-        "telefono": ""
-      }
-    },
-    "autorizaciones": {
-      "consentimiento": true,
-      "usoImagen": "si",
-      "terminos": true
-    },
-    "fecha": "2025-08-08T03:23:59.435Z"
+    "fecha": "2025-08-13T03:56:31.572Z"
   }
 ]

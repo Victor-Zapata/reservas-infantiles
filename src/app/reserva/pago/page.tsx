@@ -1,4 +1,3 @@
-// app/reserva/pago/page.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -17,10 +16,15 @@ export default function PagoPage() {
       const res = await fetch("/api/mercadopago", { method: "POST" });
       const data = await res.json();
 
-      if (data?.init_point) {
-        window.location.href = data.init_point;
+      console.log("API mercadopago response:", data);
+
+      if (data?.checkoutUrl) {
+        // debe ser sandbox.mercadopago.com.ar en modo test
+        console.log("Redirecting to:", data.checkoutUrl);
+        window.location.href = data.checkoutUrl;
       } else {
         alert("No se pudo iniciar el pago. Intente nuevamente.");
+        console.error("Respuesta MP inválida:", data);
       }
     } catch (err) {
       console.error("Error al iniciar el pago:", err);

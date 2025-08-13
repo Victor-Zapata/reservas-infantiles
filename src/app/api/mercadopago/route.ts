@@ -1,62 +1,96 @@
+// app/api/mercadopago/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { MercadoPagoConfig, Preference } from "mercadopago";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const accessToken = process.env.MP_ACCESS_TOKEN!;
-    const envUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "");
-    const { origin } = new URL(req.url);
-    const baseUrl = envUrl || origin || "http://localhost:3000";
-
-    const client = new MercadoPagoConfig({
-      accessToken,
-      options: { integratorId: process.env.MP_INTEGRATOR_ID },
-    });
-    const preference = new Preference(client);
-
-    const back_urls = {
-      success: `${baseUrl}/reserva/exito`,
-      failure: `${baseUrl}/reserva/pago?estado=failure`,
-      pending: `${baseUrl}/reserva/pago?estado=pending`,
-    };
-
-    const result = await preference.create({
-      body: {
-        items: [
-          {
-            id: "senia-reserva",
-            title: "Seña de reserva - Me Requeté",
-            description:
-              "Seña de $5000 ARS. Si no concurrís, queda como crédito para una futura visita.",
-            quantity: 1,
-            currency_id: "ARS",
-            unit_price: 5000,
-          },
-        ],
-        back_urls,
-        // auto_return: 'approved', // ⬅️ comentar en local
-        external_reference: crypto.randomUUID(),
-        statement_descriptor: "ME REQUETE",
-        // payer: { email: process.env.MP_TEST_BUYER_EMAIL },
-      },
-    });
-
-    const initPoint =
-      (result as any)?.init_point || (result as any)?.sandbox_init_point;
-    if (!initPoint) {
+    const token = process.env.MP_ACCESS_TOKEN;
+    if (!token) {
       return NextResponse.json(
-        { ok: false, error: "MP no devolvió init_point" },
+        { ok: false, error: "Falta MP_ACCESS_TOKEN" },
         { status: 500 }
       );
     }
-    return NextResponse.json({ ok: true, init_point: initPoint });
-  } catch (err: any) {
-    console.error("Error MP:", err);
+
+    // Chequeo del modo real del token (dejalo por ahora)
+    const who = await fetch("https://api.mercadopago.com/users/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const me = await who.json();
+    console.log("users/me CHECK:", {
+      id: me.id,
+      email: me.email,
+      live_mode: me.live_mode, // false = sandbox, true = prod
+      site_id: me.site_id,
+    });
+
+    const base =
+      (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "") ||
+      "http://localhost:3000";
+    const back_urls = {
+      success: `${base}/reserva/exito`,
+      failure: `${base}/reserva/pago?estado=failure`,
+      pending: `${base}/reserva/pago?estado=pending`,
+    };
+
+    const buyer = process.env.MP_TEST_BUYER_EMAIL;
+    const payer = buyer && buyer.includes("@") ? { email: buyer } : undefined;
+    const prefBody = {
+      items: [
+        {
+          id: "senia-reserva",
+          title: "Seña de reserva - Me Requeté",
+          quantity: 1,
+          currency_id: "ARS",
+          unit_price: 5000,
+        },
+      ],
+      back_urls,
+      external_reference: crypto.randomUUID(),
+      statement_descriptor: "ME REQUETE",
+      payer, // quitalo si vas a usar producción real
+    };
+
+    const resp = await fetch(
+      "https://api.mercadopago.com/checkout/preferences",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(prefBody),
+      }
+    );
+    const data = await resp.json();
+
+    console.log("MP pref status:", resp.status);
+    console.log("MP pref json keys:", Object.keys(data)); // no log completo para no ensuciar
+
+    if (!resp.ok)
+      return NextResponse.json({ ok: false, error: data }, { status: 502 });
+
+    // *** ELECCIÓN DEL CHECKOUT URL ***
+    const hasSandbox = Boolean(data.sandbox_init_point);
+    const checkoutUrl = hasSandbox ? data.sandbox_init_point : data.init_point; // <-- priorizamos sandbox si existe
+
+    console.log("checkoutUrl elegido:", checkoutUrl);
+
+    if (!checkoutUrl) {
+      return NextResponse.json(
+        { ok: false, error: "Sin checkout URL" },
+        { status: 500 }
+      );
+    }
+
+    // devolvemos la URL elegida de forma explícita
+    return NextResponse.json({ ok: true, checkoutUrl });
+  } catch (e: any) {
+    console.error("Error MP:", e);
     return NextResponse.json(
-      { ok: false, error: err?.message ?? "Error MP" },
+      { ok: false, error: e?.message || "Error" },
       { status: 500 }
     );
   }
