@@ -1,16 +1,22 @@
-'use client';
-import Link from 'next/link';
+// src/app/page.tsx
+import AvailabilityWidget from "@/components/AvailabilityWidget";
 
 export default function HomePage() {
   return (
-    <div className="text-center mt-5">
-      <h1 className="display-4 text-success fw-bold">¡Bienvenido a Me Requeté!</h1>
-      <p className="lead text-secondary">
-        Reservá un turno para el cuidado de niños en nuestro espacio seguro y divertido.
-      </p>
-      <Link href="/reserva" className="btn btn-warning btn-lg mt-4">
-        Reservar Turno
-      </Link>
-    </div>
+    <main className="container py-5">
+      <div className="mb-5 text-center">
+        <h1 className="display-5 fw-bold">ME RE QUETÉ</h1>
+        <p className="lead">Reservá tu turno para el cuidado de tu hijo/a.</p>
+      </div>
+
+      <AvailabilityWidget />
+
+      <div className="mt-4 text-center">
+        <p className="text-muted small">
+          Elegí el día y la hora; vas a completar los datos en el siguiente
+          paso.
+        </p>
+      </div>
+    </main>
   );
 }

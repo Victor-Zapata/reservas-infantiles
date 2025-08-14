@@ -25,7 +25,7 @@ export default function PagoPage() {
     window.scrollTo(0, 0);
     // ⬇️ leemos los datos que ya guarda tu flujo previo
     try {
-      const raw = localStorage.getItem("datosNiños"); // ⬅️ misma clave que venías usando
+      const raw = localStorage.getItem("datosNiños"); // misma clave que venías usando
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) setNinos(parsed);
@@ -50,8 +50,85 @@ export default function PagoPage() {
       maximumFractionDigits: 0,
     }).format(v);
 
+  // --- Helpers de validación de cupo ---
+  const addHoursToHHmm = (hhmm: string, add: number): string | null => {
+    const base = Number(String(hhmm).slice(0, 2));
+    if (!Number.isFinite(base)) return null;
+    const h = base + add;
+    if (h < 0 || h > 23) return null;
+    return `${String(h).padStart(2, "0")}:00`;
+  };
+
+  const validarCupoAntesDePagar = async (): Promise<
+    { ok: true } | { ok: false; msg: string }
+  > => {
+    // Si no hay horas a reservar, no tiene sentido validar
+    if (totalHoras <= 0) {
+      return { ok: false, msg: "No hay horas seleccionadas para reservar." };
+    }
+
+    const fecha = localStorage.getItem("reserva:fecha"); // YYYY-MM-DD
+    const horaInicio = localStorage.getItem("reserva:hora"); // "HH:00"
+
+    if (!fecha || !horaInicio) {
+      // Si no venís del widget de disponibilidad, podés optar por permitir el flujo:
+      // return { ok: true };
+      // Pero como pediste validación, mostramos un aviso claro:
+      return {
+        ok: false,
+        msg: "Seleccioná día y hora en el paso anterior para validar el cupo.",
+      };
+    }
+
+    // Traemos disponibilidad del día
+    const res = await fetch(`/api/availability?date=${fecha}`, {
+      cache: "no-store",
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data?.ok || !Array.isArray(data?.hours)) {
+      return {
+        ok: false,
+        msg: "No se pudo validar la disponibilidad. Intentá nuevamente.",
+      };
+    }
+
+    // Validamos bloques consecutivos según totalHoras
+    for (let i = 0; i < totalHoras; i++) {
+      const slotTime = addHoursToHHmm(horaInicio, i);
+      if (!slotTime) {
+        return {
+          ok: false,
+          msg: "La selección excede el horario disponible del día.",
+        };
+      }
+      const slot = data.hours.find((s: any) => s?.time === slotTime);
+      if (!slot) {
+        return {
+          ok: false,
+          msg: `No encontramos el bloque ${slotTime} para ese día.`,
+        };
+      }
+      if (slot.remaining <= 0) {
+        return {
+          ok: false,
+          msg: `Sin cupos para las ${slotTime}. Elegí otro horario.`,
+        };
+      }
+    }
+
+    return { ok: true };
+  };
+
   const iniciarPago = async () => {
     try {
+      // ✅ Validación de cupo justo antes de pagar
+      const valid = await validarCupoAntesDePagar();
+      if (!valid.ok) {
+        alert(valid.msg);
+        return;
+      }
+
       const res = await fetch("/api/mercadopago", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
