@@ -92,12 +92,12 @@ export default function ReservaPage() {
             </div>
 
             <div className="mb-3">
-              <label className="form-label">Edad (1 a 9 años)</label>
+              <label className="form-label">Edad (1 a 12 años)</label>
               <input
                 type="number"
                 className="form-control"
                 min={1}
-                max={9}
+                max={12}
                 required
                 value={niño.edad}
                 onChange={(e) =>
