@@ -1,19 +1,73 @@
+// reserva/pago/page.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+
+type Niño = {
+  nombre: string;
+  dni: string;
+  edad: number;
+  condiciones: string;
+  tieneCondiciones: boolean;
+  horas: number;
+};
+
+const HOURLY_RATE = 14000; // ARS por hora
 
 export default function PagoPage() {
   const searchParams = useSearchParams();
   const estado = searchParams.get("estado"); // failure | pending
 
+  const [ninos, setNinos] = useState<Niño[]>([]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    // ⬇️ leemos los datos que ya guarda tu flujo previo
+    try {
+      const raw = localStorage.getItem("datosNiños"); // ⬅️ misma clave que venías usando
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setNinos(parsed);
+      }
+    } catch {}
   }, []);
+
+  const { totalHoras, total, sena, restante } = useMemo(() => {
+    const horas = Array.isArray(ninos)
+      ? ninos.reduce((acc, n) => acc + (Number(n?.horas) || 0), 0)
+      : 0;
+    const t = horas * HOURLY_RATE;
+    const s = Math.round(t * 0.5); // 50%
+    const r = t - s;
+    return { totalHoras: horas, total: t, sena: s, restante: r };
+  }, [ninos]);
+
+  const currency = (v: number) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 0,
+    }).format(v);
 
   const iniciarPago = async () => {
     try {
-      const res = await fetch("/api/mercadopago", { method: "POST" });
+      const res = await fetch("/api/mercadopago", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // ⬇️ enviamos SOLO la SEÑA
+        body: JSON.stringify({
+          amount: sena,
+          description: "Seña 50% - Me Requeté",
+          metadata: {
+            total,
+            totalHoras,
+            hourlyRate: HOURLY_RATE,
+            sena,
+            restante,
+          },
+        }),
+      });
       const data = await res.json();
 
       console.log("API mercadopago response:", data);
@@ -33,30 +87,62 @@ export default function PagoPage() {
   };
 
   return (
-    <div className="container my-5 text-center">
-      <h2 className="text-primary mb-4">Reserva tu lugar</h2>
-      <p className="lead">
-        Para confirmar tu turno, aboná una seña de <strong>$5000 ARS</strong>.
-      </p>
-      <p className="text-muted">
-        Si no asistís por cualquier motivo, la seña queda como crédito para una
-        próxima visita.
-      </p>
+    <div className="container my-5">
+      <h2 className="text-primary mb-4 text-center">Reserva tu lugar</h2>
 
-      {estado === "failure" && (
-        <div className="alert alert-danger mt-3">
-          No pudimos procesar el pago. Probá nuevamente.
-        </div>
-      )}
-      {estado === "pending" && (
-        <div className="alert alert-warning mt-3">
-          Tu pago está pendiente. Te avisaremos cuando se acredite.
-        </div>
-      )}
+      {/* ⬇️ Resumen claro para el usuario */}
+      <div className="row justify-content-center">
+        <div className="col-md-8">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h5 className="card-title mb-3">Resumen de costos</h5>
+              <ul className="list-group list-group-flush">
+                <li className="list-group-item d-flex justify-content-between">
+                  <span>Valor por hora</span>
+                  <strong>{currency(HOURLY_RATE)}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between">
+                  <span>Horas totales</span>
+                  <strong>{totalHoras}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between">
+                  <span>Total</span>
+                  <strong>{currency(total)}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between">
+                  <span>Seña (50%) — abonás ahora</span>
+                  <strong className="text-success">{currency(sena)}</strong>
+                </li>
+                <li className="list-group-item d-flex justify-content-between">
+                  <span>Resto a abonar al momento del servicio</span>
+                  <strong className="text-muted">{currency(restante)}</strong>
+                </li>
+              </ul>
+            </div>
+          </div>
 
-      <button className="btn btn-success btn-lg mt-4" onClick={iniciarPago}>
-        Pagar con Mercado Pago
-      </button>
+          {estado === "failure" && (
+            <div className="alert alert-danger mt-3">
+              No pudimos procesar el pago. Probá nuevamente.
+            </div>
+          )}
+          {estado === "pending" && (
+            <div className="alert alert-warning mt-3">
+              Tu pago está pendiente. Te avisaremos cuando se acredite.
+            </div>
+          )}
+
+          <div className="text-center">
+            <button
+              className="btn btn-success btn-lg mt-4"
+              onClick={iniciarPago}
+              disabled={totalHoras <= 0} // evita pagar si no hay horas seleccionadas
+            >
+              Pagar con Mercado Pago
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

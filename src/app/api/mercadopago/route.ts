@@ -26,6 +26,19 @@ export async function POST(req: NextRequest) {
       site_id: me.site_id,
     });
 
+    // ⬇️ NUEVO: leemos el body para obtener el monto de la SEÑA (50%)
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+    const amount = Number(body?.amount || 0);
+    const description =
+      (body?.description && String(body.description)) ||
+      "Seña de reserva - Me Requeté";
+    const metadata = body?.metadata || {};
+
     const base =
       (process.env.NEXT_PUBLIC_APP_URL || "").replace(/\/+$/, "") ||
       "http://localhost:3000";
@@ -37,20 +50,24 @@ export async function POST(req: NextRequest) {
 
     const buyer = process.env.MP_TEST_BUYER_EMAIL;
     const payer = buyer && buyer.includes("@") ? { email: buyer } : undefined;
+
     const prefBody = {
       items: [
         {
           id: "senia-reserva",
-          title: "Seña de reserva - Me Requeté",
+          title: description,
           quantity: 1,
           currency_id: "ARS",
-          unit_price: 5000,
+          unit_price: amount > 0 ? amount : 5000, // ⬅️ usa la seña enviada; fallback a 5000 si faltara
         },
       ],
       back_urls,
-      external_reference: crypto.randomUUID(),
+      external_reference:
+        (globalThis as any).crypto?.randomUUID?.() ||
+        Math.random().toString(36).slice(2),
       statement_descriptor: "ME REQUETE",
       payer, // quitalo si vas a usar producción real
+      metadata, // mantengo metadatos por si los necesitás luego
     };
 
     const resp = await fetch(
