@@ -1,22 +1,36 @@
-// src/app/page.tsx
-import AvailabilityWidget from "@/components/AvailabilityWidget";
+import PlayfulAvailability from "@/components/PlayfulAvailability";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
-    <main className="container py-5">
-      <div className="mb-5 text-center">
-        <h1 className="display-5 fw-bold">ME RE QUETÉ</h1>
-        <p className="lead">Reservá tu turno para el cuidado de tu hijo/a.</p>
-      </div>
+    <main>
+      <section className="kids-hero py-5">
+        <div className="container text-center">
+          <div className="d-flex justify-content-center">
+            <Image
+              src="/merequete-logo.png" // o .png si preferís
+              width={380} // mitad del original (640x640)
+              height={380}
+              alt="ME RE QUETÉ"
+              priority
+            />
+          </div>
 
-      <AvailabilityWidget />
+          <p className="lead text-muted mb-4">
+            Elegí el día y la hora para reservar tu turno.
+          </p>
+        </div>
+      </section>
 
-      <div className="mt-4 text-center">
-        <p className="text-muted small">
-          Elegí el día y la hora; vas a completar los datos en el siguiente
-          paso.
-        </p>
-      </div>
+      <section className="py-4">
+        <div className="container">
+          <PlayfulAvailability />
+          <p className="text-center text-muted mt-3 small">
+            Al seleccionar el horario, vas a completar los datos en el paso
+            siguiente.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

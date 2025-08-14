@@ -164,59 +164,61 @@ export default function PagoPage() {
   };
 
   return (
-    <div className="container my-5">
-      <h2 className="text-primary mb-4 text-center">Reserva tu lugar</h2>
+    <div className="kids-form">
+      <div className="container my-5">
+        <h2 className="text-primary mb-4 text-center">Reserva tu lugar</h2>
 
-      {/* ⬇️ Resumen claro para el usuario */}
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title mb-3">Resumen de costos</h5>
-              <ul className="list-group list-group-flush">
-                <li className="list-group-item d-flex justify-content-between">
-                  <span>Valor por hora</span>
-                  <strong>{currency(HOURLY_RATE)}</strong>
-                </li>
-                <li className="list-group-item d-flex justify-content-between">
-                  <span>Horas totales</span>
-                  <strong>{totalHoras}</strong>
-                </li>
-                <li className="list-group-item d-flex justify-content-between">
-                  <span>Total</span>
-                  <strong>{currency(total)}</strong>
-                </li>
-                <li className="list-group-item d-flex justify-content-between">
-                  <span>Seña (50%) — abonás ahora</span>
-                  <strong className="text-success">{currency(sena)}</strong>
-                </li>
-                <li className="list-group-item d-flex justify-content-between">
-                  <span>Resto a abonar al momento del servicio</span>
-                  <strong className="text-muted">{currency(restante)}</strong>
-                </li>
-              </ul>
+        {/* ⬇️ Resumen claro para el usuario */}
+        <div className="row justify-content-center">
+          <div className="col-md-8">
+            <div className="card shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title mb-3">Resumen de costos</h5>
+                <ul className="list-group list-group-flush">
+                  <li className="list-group-item d-flex justify-content-between">
+                    <span>Valor por hora</span>
+                    <strong>{currency(HOURLY_RATE)}</strong>
+                  </li>
+                  <li className="list-group-item d-flex justify-content-between">
+                    <span>Horas totales</span>
+                    <strong>{totalHoras}</strong>
+                  </li>
+                  <li className="list-group-item d-flex justify-content-between">
+                    <span>Total</span>
+                    <strong>{currency(total)}</strong>
+                  </li>
+                  <li className="list-group-item d-flex justify-content-between">
+                    <span>Seña (50%) — abonás ahora</span>
+                    <strong className="text-success">{currency(sena)}</strong>
+                  </li>
+                  <li className="list-group-item d-flex justify-content-between">
+                    <span>Resto a abonar al momento del servicio</span>
+                    <strong className="text-muted">{currency(restante)}</strong>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
 
-          {estado === "failure" && (
-            <div className="alert alert-danger mt-3">
-              No pudimos procesar el pago. Probá nuevamente.
-            </div>
-          )}
-          {estado === "pending" && (
-            <div className="alert alert-warning mt-3">
-              Tu pago está pendiente. Te avisaremos cuando se acredite.
-            </div>
-          )}
+            {estado === "failure" && (
+              <div className="alert alert-danger mt-3">
+                No pudimos procesar el pago. Probá nuevamente.
+              </div>
+            )}
+            {estado === "pending" && (
+              <div className="alert alert-warning mt-3">
+                Tu pago está pendiente. Te avisaremos cuando se acredite.
+              </div>
+            )}
 
-          <div className="text-center">
-            <button
-              className="btn btn-success btn-lg mt-4"
-              onClick={iniciarPago}
-              disabled={totalHoras <= 0} // evita pagar si no hay horas seleccionadas
-            >
-              Pagar con Mercado Pago
-            </button>
+            <div className="text-center mt-5">
+              <button
+                className="btn btn-kids-outline"
+                onClick={iniciarPago}
+                disabled={totalHoras <= 0} // evita pagar si no hay horas seleccionadas
+              >
+                Pagar con Mercado Pago
+              </button>
+            </div>
           </div>
         </div>
       </div>

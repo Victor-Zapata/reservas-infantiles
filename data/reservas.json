@@ -462,5 +462,179 @@
       "terminos": true
     },
     "fecha": "2025-08-14T03:11:20.124Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "fndfn",
+        "dni": "75257",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "gfbfg",
+      "dni": "72727",
+      "telefono": "2757",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-14T03:47:23.656Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "papapa",
+        "dni": "5274524",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "y,uu",
+      "dni": "uy,ui",
+      "telefono": "yu,i,",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-14T04:13:54.854Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "mtim",
+        "dni": "2282",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "uimuti",
+      "dni": "2727",
+      "telefono": "171",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "no",
+      "terminos": true
+    },
+    "fecha": "2025-08-14T04:25:17.667Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "Olivia Zapata",
+        "dni": "18541",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "victor zapata",
+      "dni": "28372997",
+      "telefono": "3516145",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-14T04:29:18.797Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "nuyn",
+        "dni": "y7275",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "ytuntyun",
+      "dni": "nytuny",
+      "telefono": "tnynu",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "no",
+      "terminos": true
+    },
+    "fecha": "2025-08-14T04:30:58.773Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "bdfgb",
+        "dni": "fdgbdf",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "dfgbdfg",
+      "dni": "bdfgbdf",
+      "telefono": "fdbgdf",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-14T04:47:41.034Z"
   }
 ]

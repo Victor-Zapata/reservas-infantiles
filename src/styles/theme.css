@@ -1,0 +1,368 @@
+/* src/styles/theme.css */
+
+/* 🎨 Sobrescribo variables de Bootstrap a tu paleta */
+:root {
+  --bs-primary: #6C63FF;   /* color principal del logo */
+  --bs-secondary: #90CAF9; /* celeste */
+  --bs-success: #2ecc71;
+  --bs-warning: #ffc107;
+  --bs-danger: #e63946;
+  --bs-info: #0dcaf0;
+  --bs-light: #f8f9fa;
+  --bs-dark: #212529;
+
+  /* Paleta lúdica propia (usada por el calendario/fondos) */
+  --kids-primary: #6C63FF;
+  --kids-accent:  #FF6B6B;
+  --kids-mint:    #80ED99;
+  --kids-sun:     #FFB703;
+  --kids-sky:     #90CAF9;
+  --kids-ink:     #222;
+  --kids-bg:      #faf7ff;
+}
+
+/* Tipografías */
+.font-kids {
+  font-family: "Fredoka", "Baloo 2", "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  letter-spacing: 0.2px;
+}
+
+/* Hero y tarjeta lúdica */
+.kids-hero {
+  background:
+    radial-gradient(1000px 600px at 90% -10%, rgba(255, 107, 107, .18), rgba(255,107,107,0) 60%),
+    radial-gradient(1000px 600px at -10% 110%, rgba(128, 237, 153, .15), rgba(128,237,153,0) 60%),
+    linear-gradient(180deg, #fff 0%, var(--kids-bg) 100%);
+}
+
+.kids-hero-title {
+  font-family: "Fredoka", "Baloo 2", "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  text-shadow: 0 2px 0 rgba(255,255,255,.8), 0 6px 14px rgba(0,0,0,.06);
+  letter-spacing: .5px;
+}
+
+.playful-card {
+  background:
+    radial-gradient(1200px 600px at 100% -20%, rgba(255, 183, 3, .15), rgba(255,183,3,0) 60%),
+    radial-gradient(1000px 500px at -10% 120%, rgba(128, 237, 153, .13), rgba(128,237,153,0) 60%),
+    linear-gradient(180deg, #fff 0%, var(--kids-bg) 100%);
+  position: relative;
+}
+.playful-card-header {
+  background: linear-gradient(90deg, var(--kids-primary), var(--kids-sky));
+  color: #fff;
+}
+
+/* Calendario */
+.calendar { display: grid; gap: .5rem; }
+.calendar-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: .5rem; }
+.calendar-cell { min-height: 44px; font-weight: 600; border-radius: 12px !important; }
+.calendar-head .calendar-cell { background: transparent; border: 0; }
+.calendar-today { position: relative; }
+.calendar-today::after {
+  content: ""; position: absolute; inset: -2px;
+  border: 2px dashed var(--kids-accent); border-radius: 12px; pointer-events: none;
+}
+
+/* Botones horas */
+.hour-btn {
+  border-width: 2px; border-radius: 14px;
+  background: radial-gradient(300px 140px at 110% -20%, rgba(144,202,249,.22), rgba(144,202,249,0) 50%), #fff;
+  transition: transform .06s ease-in-out;
+}
+.hour-btn:hover:not(:disabled) { transform: translateY(-1px); }
+
+/* ====== Scope para que sólo afecte a /reserva ====== */
+.playful-scope .card {
+  border-radius: 16px;
+  border: 0;
+  box-shadow: 0 8px 30px rgba(36, 56, 99, 0.08);
+  overflow: hidden;
+}
+
+.playful-scope .card-header {
+  background: linear-gradient(90deg, var(--kids-primary), var(--kids-sky));
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+.playful-scope .form-label {
+  font-weight: 600;
+  color: var(--kids-ink);
+}
+
+.playful-scope .form-control,
+.playful-scope .form-select,
+.playful-scope textarea.form-control {
+  border-radius: 12px;
+  border: 2px solid #eaeaf4;
+  padding: .7rem .9rem;
+  background: #fff;
+}
+
+.playful-scope .form-control:focus,
+.playful-scope .form-select:focus {
+  border-color: var(--kids-primary);
+  box-shadow: 0 0 0 .25rem rgba(108, 99, 255, .15);
+}
+
+.playful-scope .btn-primary {
+  --bs-btn-bg: var(--kids-primary);
+  --bs-btn-border-color: var(--kids-primary);
+  --bs-btn-hover-bg: #5b53e0;
+  --bs-btn-hover-border-color: #5b53e0;
+  --bs-btn-focus-shadow-rgb: 108,99,255;
+  border-radius: 12px;
+}
+
+.playful-scope .btn-success {
+  border-radius: 12px;
+}
+
+/* Stepper */
+.kids-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+  margin: .5rem 0 0;
+}
+.kids-step {
+  display: grid;
+  grid-template-rows: auto auto;
+  justify-items: center;
+  text-align: center;
+}
+.kids-step .dot {
+  width: 38px; height: 38px; border-radius: 999px;
+  display: grid; place-items: center;
+  font-weight: 800;
+  background: #fff; color: var(--kids-primary);
+  border: 3px solid #eaeaf4;
+}
+.kids-step.active .dot {
+  border-color: var(--kids-primary);
+  box-shadow: 0 0 0 4px rgba(108,99,255,.12);
+}
+.kids-step.done .dot {
+  background: linear-gradient(90deg, var(--kids-primary), var(--kids-sky));
+  color: #fff; border-color: transparent;
+}
+.kids-step .label {
+  font-size: .85rem; margin-top: .25rem; font-weight: 700;
+}
+
+/* Hero chico reutilizable */
+.kids-hero-small {
+  background:
+    radial-gradient(900px 420px at 92% -10%, rgba(255, 107, 107, .18), rgba(255,107,107,0) 60%),
+    radial-gradient(1000px 600px at -10% 120%, rgba(128, 237, 153, .15), rgba(128,237,153,0) 60%),
+    linear-gradient(180deg, #fff 0%, var(--kids-bg) 100%);
+}
+
+/* =========================================================
+   Paleta y tipografías (ajustá los colores a tu logo)
+   ========================================================= */
+:root{
+  --kids-primary: #6C63FF;  /* principal */
+  --kids-sky:     #90CAF9;  /* acento 1 */
+  --kids-accent:  #FF6B6B;  /* acento 2 */
+  --kids-mint:    #80ED99;  /* acento 3 */
+  --kids-sun:     #FFB703;  /* acento 4 */
+  --kids-ink:     #222;
+  --kids-bg:      #FAF7FF;
+
+  /* Integro con Bootstrap para que sus utilidades tomen tu paleta */
+  --bs-primary: var(--kids-primary);
+  --bs-secondary: var(--kids-sky);
+  --bs-success: #2ecc71;
+  --bs-warning: #ffc107;
+  --bs-danger: #e63946;
+}
+
+.kids-font { font-family: "Fredoka","Baloo 2","Quicksand",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+
+/* =========================================================
+   Scope para formularios con estética infantil
+   Envolvé cada form en <div class="kids-form"> o <form class="kids-form">
+   ========================================================= */
+.kids-form .kids-title{
+  font: 700 1.6rem/1.2 "Fredoka","Baloo 2","Quicksand",system-ui;
+  letter-spacing:.3px;
+  color: var(--kids-ink);
+  margin-bottom:.75rem;
+}
+.kids-form .kids-subtitle{
+  color:#6b7280; /* gris suave */
+  font: 500 1rem/1.4 "Quicksand",system-ui;
+  margin-bottom:1.25rem;
+}
+
+/* Cards envolviendo formularios */
+.kids-form .card{
+  border:0; border-radius:16px;
+  box-shadow:0 10px 30px rgba(36,56,99,.08);
+  background:
+    radial-gradient(1200px 600px at 100% -20%, rgba(255,183,3,.12), rgba(255,183,3,0) 60%),
+    radial-gradient(1000px 500px at -10% 120%, rgba(128,237,153,.10), rgba(128,237,153,0) 60%),
+    #fff;
+}
+.kids-form .card-header{
+  background: linear-gradient(90deg, var(--kids-primary), var(--kids-sky));
+  color:#fff; border:0; border-radius:16px 16px 0 0;
+  font-weight:700; letter-spacing:.3px;
+}
+
+/* Labels e inputs gorditos */
+.kids-form .form-label{ 
+  font-weight:700; color:var(--kids-ink);
+  font-family:"Fredoka","Baloo 2","Quicksand",system-ui;
+}
+.kids-form .form-text{ color:#6b7280; }
+
+.kids-form .form-control,
+.kids-form .form-select,
+.kids-form textarea.form-control{
+  border-radius:14px;
+  border:2px solid #EAEAF4;
+  background:#fff;
+  padding:.7rem .9rem;
+}
+.kids-form .form-control:focus,
+.kids-form .form-select:focus{
+  border-color: var(--kids-primary);
+  box-shadow: 0 0 0 .25rem rgba(108,99,255,.18);
+}
+
+/* Checkboxes y radios más grandes con color infantil */
+.kids-form .form-check-input{
+  width:1.2rem; height:1.2rem;
+  border:2px solid #EAEAF4;
+  margin-top:.25rem;
+  cursor:pointer;
+  accent-color: var(--kids-primary); /* navegadores modernos */
+}
+.kids-form .form-check-input:focus{
+  box-shadow: 0 0 0 .2rem rgba(108,99,255,.18);
+  border-color: var(--kids-primary);
+}
+.kids-form .form-check-input:checked{
+  border-color: var(--kids-primary);
+}
+.kids-form .form-check-label{
+  font-weight:600; color:var(--kids-ink);
+}
+
+/* Select con flecha personalizada (opcional, queda lindo) */
+.kids-form .form-select{
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='20' height='20' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%236C63FF' d='M3.204 5h9.592L8 10.481z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position: right .8rem center;
+  background-size:14px;
+  padding-right:2.2rem;
+}
+
+/* Estados de validación */
+.kids-form .is-invalid{ border-color:#e63946; }
+.kids-form .is-invalid:focus{ box-shadow:0 0 0 .25rem rgba(230,57,70,.18); }
+.kids-form .invalid-feedback{ font-weight:600; }
+
+/* Botones infantiles */
+.btn-kids{
+  --_bg: var(--kids-primary);
+  --_bg-hover: #5b53e0;
+  --_ring: rgba(108,99,255,.25);
+  border-radius:14px; border:2px solid transparent;
+  background: var(--_bg); color:#fff;
+  padding:.7rem 1.1rem; font-weight:800;
+  box-shadow: 0 8px 22px rgba(108,99,255,.18);
+}
+.btn-kids:hover{ background:var(--_bg-hover); color:#fff; }
+.btn-kids:focus{ box-shadow:0 0 0 .25rem var(--_ring); }
+
+.btn-kids-outline{
+  border-radius:14px; border:2px solid var(--kids-primary);
+  color:var(--kids-primary); background:#fff; font-weight:800;
+}
+.btn-kids-outline:hover{ background:var(--kids-primary); color:#fff; }
+.btn-kids-outline:focus{ box-shadow:0 0 0 .25rem rgba(108,99,255,.20); }
+
+/* Badges “pill” para info y pasos */
+.kids-pill{
+  display:inline-block; border-radius:999px;
+  padding:.25rem .6rem; font-weight:700;
+  background:linear-gradient(90deg, var(--kids-primary), var(--kids-sky));
+  color:#fff;
+}
+
+/* Pequeño encabezado reutilizable para secciones */
+.kids-section-title{
+  font: 700 1.15rem/1.2 "Fredoka","Baloo 2","Quicksand",system-ui;
+  color:var(--kids-ink);
+}
+
+/* Stepper (si lo usás) */
+.kids-stepper{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:.75rem; margin:.5rem 0 0;
+}
+.kids-step{ display:grid; grid-template-rows:auto auto; justify-items:center; text-align:center; }
+.kids-step .dot{
+  width:38px;height:38px;border-radius:999px;display:grid;place-items:center;
+  font-weight:800;background:#fff;color:var(--kids-primary);border:3px solid #eaeaf4;
+}
+.kids-step.active .dot{ border-color:var(--kids-primary); box-shadow:0 0 0 4px rgba(108,99,255,.12); }
+.kids-step.done .dot{ background:linear-gradient(90deg,var(--kids-primary),var(--kids-sky));color:#fff;border-color:transparent; }
+.kids-step .label{ font-size:.85rem;margin-top:.25rem;font-weight:700; }
+
+/* Fondo lúdico para cabeceras/pantallas (opcional) */
+.kids-hero,
+.kids-hero-small{
+  background:
+    radial-gradient(1000px 600px at 90% -10%, rgba(255,107,107,.18), rgba(255,107,107,0) 60%),
+    radial-gradient(1000px 600px at -10% 110%, rgba(128,237,153,.15), rgba(128,237,153,0) 60%),
+    linear-gradient(180deg, #fff 0%, var(--kids-bg) 100%);
+}
+
+/* ===== Headings infantiles en todo el flujo ===== */
+.playful-scope h1, .playful-scope h2, .playful-scope h3,
+.playful-scope h4, .playful-scope h5, .playful-scope h6,
+.kids-form h1, .kids-form h2, .kids-form h3,
+.kids-form h4, .kids-form h5, .kids-form h6 {
+  font-family: "Fredoka","Baloo 2","Quicksand",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--kids-ink); /* texto oscuro amable por defecto */
+  margin-bottom: .75rem;
+}
+
+/* Variante “arcoiris suave” para títulos principales */
+.kids-heading {
+  background: linear-gradient(90deg, var(--kids-primary), var(--kids-sun));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;          /* hace visible el gradiente */
+  text-shadow: none;
+}
+
+/* Subtítulo/coletilla en tono suave */
+.kids-subheading {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Si quedó algún .text-primary o .text-success de Bootstrap,
+   lo llevamos a la paleta kids dentro del scope */
+.playful-scope .text-primary,
+.kids-form .text-primary { color: var(--kids-primary) !important; }
+
+.playful-scope .text-success,
+.kids-form .text-success { color: var(--kids-accent) !important; } /* coral en vez de verde puro */
+
+/* Card titles de Bootstrap con look kids */
+.playful-scope .card-title,
+.kids-form .card-title {
+  font-family: "Fredoka","Baloo 2","Quicksand",system-ui;
+  font-weight: 800;
+  letter-spacing: .3px;
+  color: var(--kids-ink);
+}
