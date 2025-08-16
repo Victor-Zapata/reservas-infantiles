@@ -1,81 +1,238 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
-type Niño = {
-  nombre: string;
-  dni: string;
-  edad: number;
-  condiciones: string;
-  tieneCondiciones: boolean;
-  horas: number;
+type Payment = {
+  id: string;
+  provider: string;
+  providerId: string | null;
+  amount: number;
+  kind: "deposit" | "remainder" | "full" | "other";
+  status: "pending" | "approved" | "rejected" | "cancelled" | "refunded";
+  createdAt: string;
 };
 
-const addHoursToHHmm = (hhmm: string, add: number): string | null => {
-  const base = Number(String(hhmm).slice(0, 2));
-  if (!Number.isFinite(base)) return null;
-  const h = base + add;
-  if (h < 0 || h > 23) return null;
-  return `${String(h).padStart(2, "0")}:00`;
+type ReservationDTO = {
+  id: string;
+  status: string;
+  date: string; // YYYY-MM-DD
+  hour: number; // 0..23
+  hourHHmm: string; // "HH:00"
+  guardian: {
+    name: string;
+    email: string;
+    phone?: string | null;
+    docNumber?: string | null;
+  };
+  totals: {
+    hourlyRate: number;
+    depositPct: number;
+    totalHours: number;
+    totalAmount: number;
+    depositAmount: number;
+    remainingAmount: number;
+  };
+  children: Array<{
+    id: string;
+    fullName: string;
+    ageYears: number;
+    hours: number;
+    hasConditions: boolean;
+    conditions?: string | null;
+    dni?: string | null;
+  }>;
+  payments: Payment[];
 };
+
+const currency = (v: number) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(v);
 
 export default function ExitoPage() {
+  const sp = useSearchParams();
+  const resId = sp.get("res"); // lo mandamos en back_urls (external_reference)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [resv, setResv] = useState<ReservationDTO | null>(null);
+
   useEffect(() => {
     (async () => {
       try {
-        const fecha = localStorage.getItem("reserva:fecha"); // YYYY-MM-DD
-        const horaInicio = localStorage.getItem("reserva:hora"); // "HH:00"
-        const raw = localStorage.getItem("datosNiños");
-
-        if (!fecha || !horaInicio || !raw) return;
-
-        const niños: Niño[] = JSON.parse(raw) || [];
-        if (!Array.isArray(niños) || !niños.length) return;
-
-        // Evitar doble descuento en refresh:
-        const dedupeKey = `cupo-descontado:${fecha}|${horaInicio}`;
-        if (localStorage.getItem(dedupeKey)) return;
-
-        // Para cada bloque i, descontar la cantidad de niños que siguen presentes en ese bloque:
-        const maxHoras = niños.reduce(
-          (m, n) => Math.max(m, Number(n.horas) || 0),
-          0
-        );
-
-        for (let i = 0; i < maxHoras; i++) {
-          // cuántos niños tienen horas > i (siguen en el cuidado a esta hora)
-          const count = niños.filter((n) => (Number(n.horas) || 0) > i).length;
-          if (count <= 0) continue;
-
-          const hhmm = addHoursToHHmm(horaInicio, i);
-          if (!hhmm) continue;
-
-          const res = await fetch("/api/availability", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ date: fecha, hour: hhmm, count }),
-          });
-
-          // Si no hay cupo suficiente en ese bloque, el endpoint responde 409:
-          if (!res.ok && res.status !== 409) {
-            const msg = await res.text();
-            console.warn("No se pudo descontar cupo", fecha, hhmm, count, msg);
-          }
+        const id = resId || localStorage.getItem("reservationId") || "";
+        if (!id) {
+          setError("No encontramos la reserva.");
+          setLoading(false);
+          return;
         }
 
-        // Marcamos que ya descontamos
-        localStorage.setItem(dedupeKey, "1");
-      } catch (e) {
-        console.error("Error descontando cupo:", e);
+        const r = await fetch(`/api/reservations/${id}`, { cache: "no-store" });
+        const j = await r.json();
+        if (!r.ok || !j?.ok) {
+          setError(j?.error || "No pudimos cargar la reserva.");
+          setLoading(false);
+          return;
+        }
+
+        setResv(j.reservation as ReservationDTO);
+        setLoading(false);
+      } catch (e: any) {
+        setError(e?.message || "Error inesperado");
+        setLoading(false);
       }
     })();
-  }, []);
+  }, [resId]);
 
-  // Tu UI actual de éxito puede seguir igual; muestro algo mínimo por si no la tenés:
+  const approved = useMemo(
+    () => (resv?.payments || []).filter((p) => p.status === "approved"),
+    [resv]
+  );
+
   return (
-    <div className="container py-5 text-center">
-      <h2 className="mb-3">¡Pago confirmado! 🎉</h2>
-      <p className="text-muted">Tu seña quedó registrada. ¡Te esperamos!</p>
+    <div className="kids-form">
+      <div className="row justify-content-center">
+        <div className="col-lg-8">
+          {/* Hero / título */}
+          <div className="text-center mb-4">
+            <h1 className="kids-heading">¡Reserva confirmada!</h1>
+            <p className="kids-subheading">
+              Te enviamos el detalle a{" "}
+              <strong>{resv?.guardian.email || "-"}</strong>
+            </p>
+          </div>
+
+          {/* Estados de carga/errores */}
+          {loading && (
+            <div className="alert alert-info">
+              Cargando los detalles de tu reserva…
+            </div>
+          )}
+          {error && <div className="alert alert-danger">{error}</div>}
+
+          {resv && (
+            <div className="card shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">Resumen del turno</h5>
+
+                {/* Datos principales */}
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <div className="kids-section-title mb-1">Fecha y hora</div>
+                    <div>
+                      {resv.date} — {resv.hourHHmm} hs
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="kids-section-title mb-1">Estado</div>
+                    <span className="kids-pill">{resv.status}</span>
+                  </div>
+                </div>
+
+                {/* Niños */}
+                <div className="mt-4">
+                  <div className="kids-section-title mb-2">Niños/as</div>
+                  <ul className="list-group">
+                    {resv.children.map((c) => (
+                      <li
+                        key={c.id}
+                        className="list-group-item d-flex justify-content-between"
+                      >
+                        <div>
+                          <strong>{c.fullName}</strong>{" "}
+                          <span className="text-muted">
+                            ({c.ageYears} años)
+                          </span>
+                          {c.hasConditions && c.conditions ? (
+                            <div className="small text-muted">
+                              Condiciones: {c.conditions}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="fw-bold">{c.hours} h</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Totales */}
+                <div className="mt-4">
+                  <div className="kids-section-title mb-2">Costos</div>
+                  <ul className="list-group">
+                    <li className="list-group-item d-flex justify-content-between">
+                      <span>Valor por hora</span>
+                      <strong>{currency(resv.totals.hourlyRate)}</strong>
+                    </li>
+                    <li className="list-group-item d-flex justify-content-between">
+                      <span>Horas totales</span>
+                      <strong>{resv.totals.totalHours}</strong>
+                    </li>
+                    <li className="list-group-item d-flex justify-content-between">
+                      <span>Total</span>
+                      <strong>{currency(resv.totals.totalAmount)}</strong>
+                    </li>
+                    <li className="list-group-item d-flex justify-content-between">
+                      <span>Seña ({resv.totals.depositPct}%) — abonada</span>
+                      <strong className="text-success">
+                        {currency(resv.totals.depositAmount)}
+                      </strong>
+                    </li>
+                    <li className="list-group-item d-flex justify-content-between">
+                      <span>Resto a abonar al momento del servicio</span>
+                      <strong className="text-muted">
+                        {currency(resv.totals.remainingAmount)}
+                      </strong>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Pagos recibidos */}
+                <div className="mt-4">
+                  <div className="kids-section-title mb-2">Pagos</div>
+                  {approved.length === 0 ? (
+                    <div className="alert alert-warning mb-0">
+                      Aún no registramos pagos aprobados. Si ya pagaste, se
+                      actualizará en breve.
+                    </div>
+                  ) : (
+                    <ul className="list-group">
+                      {approved.map((p) => (
+                        <li
+                          key={p.id}
+                          className="list-group-item d-flex justify-content-between"
+                        >
+                          <div>
+                            <div className="fw-bold">
+                              {p.kind === "deposit"
+                                ? "Seña"
+                                : p.kind === "remainder"
+                                ? "Resto"
+                                : "Pago"}
+                            </div>
+                            <div className="small text-muted">
+                              {new Date(p.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                          <div className="fw-bold">{currency(p.amount)}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* CTA */}
+                <div className="text-center mt-4">
+                  <a className="btn btn-kids" href="/">
+                    Volver al inicio
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

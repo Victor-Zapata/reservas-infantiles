@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReservationStatus {
+  draft
+  pending_payment
+  confirmed
+  completed
+  canceled
+}
+
+enum PaymentStatus {
+  pending
+  approved
+  rejected
+  cancelled
+  refunded
+}
+
+enum PaymentKind {
+  deposit
+  remainder
+  full
+  other
+}
+
+model Guardian {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  name       String
+  email      String   @unique
+  phone      String?
+  docNumber  String?  // DNI
+  children   Child[]
+  reservations Reservation[]
+}
+
+model Child {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  guardianId    String
+  guardian      Guardian  @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  fullName      String
+  dni           String?
+  ageYears      Int
+  conditions    String?
+  hasConditions Boolean   @default(false)
+  reservations  ReservationChild[]
+}
+
+model Reservation {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  guardianId     String
+  guardian       Guardian  @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+
+  date           String    // "YYYY-MM-DD"
+  hour           Int       // 0..23 (hora de inicio)
+  totalHours     Int       @default(0)
+  hourlyRate     Int       // ARS al momento de reservar (snapshot)
+  depositPct     Int       // ej. 50
+  totalAmount    Int       // totalHours * hourlyRate
+  depositAmount  Int       // totalAmount * depositPct / 100
+  remainingAmount Int      // totalAmount - depositAmount
+
+  status         ReservationStatus @default(draft)
+
+  externalRef    String?   // referencia/UUID usada con MP
+  mpPreferenceId String?   // id de preferencia (opcional)
+
+  children       ReservationChild[]
+  payments       Payment[]
+
+  @@index([date, hour])
+}
+
+model ReservationChild {
+  id            String   @id @default(cuid())
+  reservationId String
+  childId       String
+  hours         Int
+
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  child         Child       @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([reservationId, childId])
+}
+
+model Payment {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  provider     String   @default("mercadopago")
+  providerId   String?  // id de pago de MP (v1/payments/:id)
+  reservationId String
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  amount       Int
+  kind         PaymentKind
+  status       PaymentStatus
+  raw          Json?
+}
+
+model PaymentEvent {
+  id        String   @id   // id del pago MP (v1/payments/:id) para idempotencia
+  status    String
+  createdAt DateTime @default(now())
+  raw       Json?
+}
+
+model SlotStock {
+  date String
+  hour Int
+  used Int @default(0)
+
+  @@id([date, hour])
+}
+
+model AppConfig {
+  id           Int     @id @default(1)
+  hourlyRate   Int     @default(14000)
+  depositPct   Int     @default(50)
+  maxPerHour   Int     @default(10)
+}
