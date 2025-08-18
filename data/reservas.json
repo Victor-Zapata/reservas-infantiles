@@ -433,5 +433,92 @@
       "terminos": true
     },
     "fecha": "2025-08-18T03:34:40.726Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "Olivia",
+        "dni": "58773656",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "Paola",
+      "dni": "30901104",
+      "telefono": "3516708539",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "no",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T04:24:36.142Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "dfgb ",
+        "dni": "fgn",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "dfgn",
+      "dni": "dfgn",
+      "telefono": "gfn",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "no",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T04:32:05.930Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "Olivia Zapata",
+        "dni": "58773656",
+        "edad": 4,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "Paola Moretti",
+      "dni": "30901104",
+      "telefono": "3516708539",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "no",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T04:33:37.289Z"
   }
 ]

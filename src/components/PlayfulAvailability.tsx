@@ -203,7 +203,7 @@ export default function PlayfulAvailability() {
                   >
                     <div className="fw-semibold">{h.time}</div>
                     <div className={`small ${noCupo ? "text-muted" : ""}`}>
-                      {noCupo ? "Agotado" : `Quedan ${h.remaining}`}
+                      {noCupo ? "Agotado" : `Quedan ${h.remaining} lugares`}
                     </div>
                   </button>
                 </div>

@@ -29,23 +29,34 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const qsId = url.searchParams.get("data.id") || url.searchParams.get("id") || "";
-    const qsType = url.searchParams.get("topic") || url.searchParams.get("type") || "";
+    const qsId =
+      url.searchParams.get("data.id") || url.searchParams.get("id") || "";
+    const qsType =
+      url.searchParams.get("topic") || url.searchParams.get("type") || "";
 
     let body: any = {};
-    try { body = await req.json(); } catch {}
+    try {
+      body = await req.json();
+    } catch {}
     const bodyId = body?.data?.id || body?.id || "";
     const bodyType = body?.type || body?.topic || body?.action || ""; // ej: "payment.created"
 
     const rawTopic = (qsType || bodyType || "").toString().toLowerCase();
-    const topic: "payment" | "merchant_order" | "unknown" =
-      rawTopic.includes("merchant_order") ? "merchant_order" :
-      rawTopic.includes("payment") ? "payment" : "unknown";
+    const topic: "payment" | "merchant_order" | "unknown" = rawTopic.includes(
+      "merchant_order"
+    )
+      ? "merchant_order"
+      : rawTopic.includes("payment")
+      ? "payment"
+      : "unknown";
 
     const token = process.env.MP_ACCESS_TOKEN!;
     if (!token) {
       console.error("[WEBHOOK] Falta MP_ACCESS_TOKEN");
-      return NextResponse.json({ ok: false, error: "Falta MP_ACCESS_TOKEN" }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: "Falta MP_ACCESS_TOKEN" },
+        { status: 500 }
+      );
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -55,24 +66,42 @@ export async function POST(req: NextRequest) {
       const orderId = String(qsId || bodyId || "");
       if (!orderId) {
         console.log("[WEBHOOK] merchant_order sin id → 200 ignored");
-        return NextResponse.json({ ok: true, ignored: true, reason: "merchant_order-without-id" });
+        return NextResponse.json({
+          ok: true,
+          ignored: true,
+          reason: "merchant_order-without-id",
+        });
       }
 
-      const moResp = await fetch(`https://api.mercadopago.com/merchant_orders/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
+      const moResp = await fetch(
+        `https://api.mercadopago.com/merchant_orders/${orderId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        }
+      );
       const mo = await moResp.json();
 
       if (!moResp.ok) {
         console.log("[WEBHOOK] merchant_order fetch no OK", moResp.status, mo);
-        return NextResponse.json({ ok: true, ignored: true, reason: "merchant_order-fetch-failed", status: moResp.status });
+        return NextResponse.json({
+          ok: true,
+          ignored: true,
+          reason: "merchant_order-fetch-failed",
+          status: moResp.status,
+        });
       }
 
-      const reservationId: string | null = mo?.external_reference ? String(mo.external_reference) : null;
+      const reservationId: string | null = mo?.external_reference
+        ? String(mo.external_reference)
+        : null;
       if (!reservationId) {
         console.log("[WEBHOOK] MO sin external_reference → 200 ignored");
-        return NextResponse.json({ ok: true, ignored: true, reason: "merchant_order-without-external_reference" });
+        return NextResponse.json({
+          ok: true,
+          ignored: true,
+          reason: "merchant_order-without-external_reference",
+        });
       }
 
       const reservation = await prisma.reservation.findUnique({
@@ -81,39 +110,68 @@ export async function POST(req: NextRequest) {
       });
       if (!reservation) {
         console.error("[WEBHOOK] reserva no encontrada (MO):", reservationId);
-        return NextResponse.json({ ok: true, ignored: true, reason: "reservation-not-found" });
+        return NextResponse.json({
+          ok: true,
+          ignored: true,
+          reason: "reservation-not-found",
+        });
       }
 
       // ✅ Idempotencia por reserva (comparación con string literal, SIN enum)
       if ((reservation.status as any) === STATUS_COMPLETED) {
-        return NextResponse.json({ ok: true, idempotent: true, note: "reservation already completed (MO)" });
+        return NextResponse.json({
+          ok: true,
+          idempotent: true,
+          note: "reservation already completed (MO)",
+        });
       }
 
-      const payments: Array<any> = Array.isArray(mo?.payments) ? mo.payments : [];
+      const payments: Array<any> = Array.isArray(mo?.payments)
+        ? mo.payments
+        : [];
       const orderStatus = String(mo?.status || "").toLowerCase(); // "closed" cuando está pagada
       const paidAmount = Number(mo?.paid_amount || 0);
 
       // Seña esperada (50% del total)
       const hourlyRate = reservation.hourlyRate || 14000;
       const depositPct = reservation.depositPct || 50;
-      const totalHoras = reservation.children.reduce((a, c) => a + (c.hours || 0), 0);
+      const totalHoras = reservation.children.reduce(
+        (a, c) => a + (c.hours || 0),
+        0
+      );
       const totalAmount = reservation.totalAmount || totalHoras * hourlyRate;
-      const expectedDeposit = reservation.depositAmount || Math.round(totalAmount * (depositPct / 100));
+      const expectedDeposit =
+        reservation.depositAmount ||
+        Math.round(totalAmount * (depositPct / 100));
 
       const approvedish =
-        orderStatus === "closed" ||
-        paidAmount >= Math.max(1, expectedDeposit);
+        orderStatus === "closed" || paidAmount >= Math.max(1, expectedDeposit);
 
       if (!approvedish) {
-        console.log("[WEBHOOK] merchant_order aún no pagada (no closed / paid_amount insuficiente) → 200 ignored", {
-          orderStatus, paidAmount, expectedDeposit
+        console.log(
+          "[WEBHOOK] merchant_order aún no pagada (no closed / paid_amount insuficiente) → 200 ignored",
+          {
+            orderStatus,
+            paidAmount,
+            expectedDeposit,
+          }
+        );
+        return NextResponse.json({
+          ok: true,
+          ignored: true,
+          reason: "merchant_order-not-paid",
         });
-        return NextResponse.json({ ok: true, ignored: true, reason: "merchant_order-not-paid" });
       }
 
-      const approvedPay = payments.find(p => String(p?.status).toLowerCase() === "approved");
+      const approvedPay = payments.find(
+        (p) => String(p?.status).toLowerCase() === "approved"
+      );
       const anyPay = payments[0];
-      const paymentId = approvedPay?.id ? String(approvedPay.id) : (anyPay?.id ? String(anyPay.id) : `mo_${orderId}`);
+      const paymentId = approvedPay?.id
+        ? String(approvedPay.id)
+        : anyPay?.id
+        ? String(anyPay.id)
+        : `mo_${orderId}`;
 
       // Idempotencia adicional por Payment.providerId (si tenemos uno real)
       if (!paymentId.startsWith("mo_")) {
@@ -123,19 +181,41 @@ export async function POST(req: NextRequest) {
         if (alreadyPayment) {
           // asegurar estado “completed”
           if ((reservation.status as any) !== STATUS_COMPLETED) {
-            await prisma.reservation.update({ where: { id: reservation.id }, data: { status: STATUS_COMPLETED as any } });
+            await prisma.reservation.update({
+              where: { id: reservation.id },
+              data: { status: STATUS_COMPLETED as any },
+            });
           }
-          return NextResponse.json({ ok: true, idempotent: true, note: "payment ya registrado (MO)" });
+          return NextResponse.json({
+            ok: true,
+            idempotent: true,
+            note: "payment ya registrado (MO)",
+          });
         }
       }
 
       const fecha = String(reservation.date || "");
       const horaInicio = `${String(reservation.hour).padStart(2, "0")}:00`;
-      const childrenHours: number[] = reservation.children.map(rc => rc.hours || 0);
+      const childrenHours: number[] = reservation.children.map(
+        (rc) => rc.hours || 0
+      );
 
-      if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !/^\d{2}:00$/.test(horaInicio) || childrenHours.length === 0) {
-        console.error("[WEBHOOK] MO pagada pero reserva incompleta", { fecha, horaInicio, childrenHours });
-        return NextResponse.json({ ok: true, ignored: true, reason: "merchant_order-paid-incomplete-reservation" });
+      if (
+        !fecha ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(fecha) ||
+        !/^\d{2}:00$/.test(horaInicio) ||
+        childrenHours.length === 0
+      ) {
+        console.error("[WEBHOOK] MO pagada pero reserva incompleta", {
+          fecha,
+          horaInicio,
+          childrenHours,
+        });
+        return NextResponse.json({
+          ok: true,
+          ignored: true,
+          reason: "merchant_order-paid-incomplete-reservation",
+        });
       }
 
       const cfg = await prisma.appConfig.findUnique({ where: { id: 1 } });
@@ -144,25 +224,40 @@ export async function POST(req: NextRequest) {
       const maxHoras = Math.max(...childrenHours);
       const updates: Array<{ date: string; hour: number; inc: number }> = [];
       for (let i = 0; i < maxHoras; i++) {
-        const inc = childrenHours.filter(h => h > i).length;
+        const inc = childrenHours.filter((h) => h > i).length;
         if (inc <= 0) continue;
         const hhmm = addHoursTo(horaInicio, i);
         if (!hhmm) continue;
         updates.push({ date: fecha, hour: Number(hhmm.slice(0, 2)), inc });
       }
 
-      const paid =
-        Math.round(Number(approvedPay?.transaction_amount || approvedPay?.total_paid_amount || paidAmount || 0));
+      const paid = Math.round(
+        Number(
+          approvedPay?.transaction_amount ||
+            approvedPay?.total_paid_amount ||
+            paidAmount ||
+            0
+        )
+      );
 
       await prisma.$transaction(async (tx) => {
         // re-chequeo de estado en tx
-        const current = await tx.reservation.findUnique({ where: { id: reservation.id } });
+        const current = await tx.reservation.findUnique({
+          where: { id: reservation.id },
+        });
         if ((current?.status as any) !== STATUS_COMPLETED) {
           for (const u of updates) {
-            const row = await tx.slotStock.findUnique({ where: { date_hour: { date: u.date, hour: u.hour } } });
+            const row = await tx.slotStock.findUnique({
+              where: { date_hour: { date: u.date, hour: u.hour } },
+            });
             const used = row?.used ?? 0;
             if (used + u.inc > MAX) {
-              throw new Error(`Sin cupo en ${u.date} ${String(u.hour).padStart(2, "0")}:00 (used=${used}, inc=${u.inc})`);
+              throw new Error(
+                `Sin cupo en ${u.date} ${String(u.hour).padStart(
+                  2,
+                  "0"
+                )}:00 (used=${used}, inc=${u.inc})`
+              );
             }
             await tx.slotStock.upsert({
               where: { date_hour: { date: u.date, hour: u.hour } },
@@ -170,7 +265,10 @@ export async function POST(req: NextRequest) {
               update: { used: used + u.inc },
             });
           }
-          await tx.reservation.update({ where: { id: reservation.id }, data: { status: STATUS_COMPLETED as any } });
+          await tx.reservation.update({
+            where: { id: reservation.id },
+            data: { status: STATUS_COMPLETED as any },
+          });
         }
 
         const providerId = paymentId;
@@ -185,20 +283,37 @@ export async function POST(req: NextRequest) {
               reservationId: reservation.id,
               amount: paid || expectedDeposit,
               kind:
-                (paid || expectedDeposit) >= (reservation.totalAmount || totalAmount)
+                (paid || expectedDeposit) >=
+                (reservation.totalAmount || totalAmount)
                   ? "full"
-                  : Math.abs((paid || expectedDeposit) - (reservation.depositAmount || expectedDeposit)) <= 1
+                  : Math.abs(
+                      (paid || expectedDeposit) -
+                        (reservation.depositAmount || expectedDeposit)
+                    ) <= 1
                   ? "deposit"
                   : "remainder",
               status: "approved",
-              raw: { merchant_order: mo, chosen_payment: approvedPay || anyPay || null },
+              raw: {
+                merchant_order: mo,
+                chosen_payment: approvedPay || anyPay || null,
+              },
             },
           });
         }
       });
 
-      console.log("[WEBHOOK][MO] discounted + payment recorded", { paymentId, updates, orderStatus, paidAmount });
-      return NextResponse.json({ ok: true, discounted: true, via: "merchant_order", updates });
+      console.log("[WEBHOOK][MO] discounted + payment recorded", {
+        paymentId,
+        updates,
+        orderStatus,
+        paidAmount,
+      });
+      return NextResponse.json({
+        ok: true,
+        discounted: true,
+        via: "merchant_order",
+        updates,
+      });
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -207,21 +322,67 @@ export async function POST(req: NextRequest) {
     let paymentId = String(qsId || bodyId || "");
     if (!paymentId) {
       console.log("[WEBHOOK] sin payment id resoluble → 200 ignored");
-      return NextResponse.json({ ok: true, ignored: true, reason: "no-resolved-payment-id" });
+      return NextResponse.json({
+        ok: true,
+        ignored: true,
+        reason: "no-resolved-payment-id",
+      });
     }
 
-    const pResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
+    const pResp = await fetch(
+      `https://api.mercadopago.com/v1/payments/${paymentId}`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+    );
     const pay = await pResp.json();
 
-    if (pResp.status === 404 || pay?.error === "not_found") {
-      console.warn("[WEBHOOK] MP 404 Payment not found; solicitar retry", { paymentId });
-      return NextResponse.json({ ok: false, retry: true, reason: "mp_payment_404_not_ready" }, { status: 502 });
+    // ⬇️ Evitar 502 cuando MP aún no propagó el pago (404 esperado en sandbox)
+    if (!pResp.ok) {
+      if (pResp.status === 404) {
+        console.log("[WEBHOOK] MP 404 Payment not found (delay esperado)", {
+          paymentId,
+        });
+        // (opcional) dejamos un log en DB, sin romper si falla
+        try {
+          await prisma.paymentEvent.upsert({
+            where: { id: String(paymentId) },
+            update: { status: "404", raw: pay },
+            create: { id: String(paymentId), status: "404", raw: pay },
+          });
+        } catch {}
+
+        // Respondemos 200 para no generar “errores” ni retries innecesarios.
+        // Tu /reserva/exito + /api/payments/finalize ya resuelven el impacto real.
+        return NextResponse.json({
+          ok: true,
+          ignored: true,
+          reason: "mp-payment-propagation-delay",
+          paymentId,
+        });
+      }
+
+      // Otros códigos ≠ 404: ignoramos con 200, registrando el motivo.
+      console.log("[WEBHOOK] payment fetch no OK", pResp.status, pay);
+      return NextResponse.json({
+        ok: true,
+        ignored: true,
+        reason: "mp-payment-fetch-failed",
+        status: pResp.status,
+      });
     }
 
-    const statusStr = String(pay?.status ?? pay?.status_detail ?? pResp.status ?? "unknown");
+    if (pResp.status === 404 || pay?.error === "not_found") {
+      console.warn("[WEBHOOK] MP 404 Payment not found; solicitar retry", {
+        paymentId,
+      });
+      return NextResponse.json(
+        { ok: false, retry: true, reason: "mp_payment_404_not_ready" },
+        { status: 502 }
+      );
+    }
+
+    const statusStr = String(
+      pay?.status ?? pay?.status_detail ?? pResp.status ?? "unknown"
+    );
     await prisma.paymentEvent.upsert({
       where: { id: paymentId },
       update: { status: statusStr, raw: pay },
@@ -232,12 +393,20 @@ export async function POST(req: NextRequest) {
       where: { provider: "mercadopago", providerId: String(pay?.id || "") },
     });
     if (alreadyPayment) {
-      return NextResponse.json({ ok: true, idempotent: true, note: "payment ya registrado" });
+      return NextResponse.json({
+        ok: true,
+        idempotent: true,
+        note: "payment ya registrado",
+      });
     }
 
     const status = String(pay?.status || "").toLowerCase(); // pending | in_process | approved | rejected | ...
     if (status !== "approved") {
-      console.log("[WEBHOOK] pago no aprobado aún:", { status, id: paymentId, topic });
+      console.log("[WEBHOOK] pago no aprobado aún:", {
+        status,
+        id: paymentId,
+        topic,
+      });
       return NextResponse.json({ ok: true, ignored: true, status, topic });
     }
 
@@ -247,8 +416,14 @@ export async function POST(req: NextRequest) {
       (pay?.external_reference ? String(pay.external_reference) : null);
 
     if (!reservationId) {
-      console.error("[WEBHOOK] approved pero sin reservationId en metadata/external_reference");
-      return NextResponse.json({ ok: true, ignored: true, reason: "approved-without-reservationId" });
+      console.error(
+        "[WEBHOOK] approved pero sin reservationId en metadata/external_reference"
+      );
+      return NextResponse.json({
+        ok: true,
+        ignored: true,
+        reason: "approved-without-reservationId",
+      });
     }
 
     const reservation = await prisma.reservation.findUnique({
@@ -257,18 +432,37 @@ export async function POST(req: NextRequest) {
     });
     if (!reservation) {
       console.error("[WEBHOOK] reserva no encontrada:", reservationId);
-      return NextResponse.json({ ok: true, ignored: true, reason: "reservation-not-found" });
+      return NextResponse.json({
+        ok: true,
+        ignored: true,
+        reason: "reservation-not-found",
+      });
     }
 
     const fecha = String(md?.fecha || reservation.date || "");
-       const horaInicio = String(md?.hora || `${String(reservation.hour).padStart(2, "0")}:00`);
+    const horaInicio = String(
+      md?.hora || `${String(reservation.hour).padStart(2, "0")}:00`
+    );
     const childrenHours: number[] = Array.isArray(md?.childrenHours)
       ? md.childrenHours.map((n: any) => Number(n) || 0)
-      : reservation.children.map(rc => rc.hours || 0);
+      : reservation.children.map((rc) => rc.hours || 0);
 
-    if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !/^\d{2}:00$/.test(horaInicio) || childrenHours.length === 0) {
-      console.error("[WEBHOOK] approved pero metadata incompleta", { fecha, horaInicio, childrenHours });
-      return NextResponse.json({ ok: true, ignored: true, reason: "approved-without-metadata" });
+    if (
+      !fecha ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(fecha) ||
+      !/^\d{2}:00$/.test(horaInicio) ||
+      childrenHours.length === 0
+    ) {
+      console.error("[WEBHOOK] approved pero metadata incompleta", {
+        fecha,
+        horaInicio,
+        childrenHours,
+      });
+      return NextResponse.json({
+        ok: true,
+        ignored: true,
+        reason: "approved-without-metadata",
+      });
     }
 
     const cfg = await prisma.appConfig.findUnique({ where: { id: 1 } });
@@ -277,7 +471,7 @@ export async function POST(req: NextRequest) {
     const maxHoras = Math.max(...childrenHours);
     const updates: Array<{ date: string; hour: number; inc: number }> = [];
     for (let i = 0; i < maxHoras; i++) {
-      const inc = childrenHours.filter(h => h > i).length;
+      const inc = childrenHours.filter((h) => h > i).length;
       if (inc <= 0) continue;
       const hhmm = addHoursTo(horaInicio, i);
       if (!hhmm) continue;
@@ -293,13 +487,22 @@ export async function POST(req: NextRequest) {
         : "remainder";
 
     await prisma.$transaction(async (tx) => {
-      const current = await tx.reservation.findUnique({ where: { id: reservation.id } });
+      const current = await tx.reservation.findUnique({
+        where: { id: reservation.id },
+      });
       if ((current?.status as any) !== STATUS_COMPLETED) {
         for (const u of updates) {
-          const row = await tx.slotStock.findUnique({ where: { date_hour: { date: u.date, hour: u.hour } } });
+          const row = await tx.slotStock.findUnique({
+            where: { date_hour: { date: u.date, hour: u.hour } },
+          });
           const used = row?.used ?? 0;
           if (used + u.inc > MAX) {
-            throw new Error(`Sin cupo en ${u.date} ${String(u.hour).padStart(2, "0")}:00 (used=${used}, inc=${u.inc})`);
+            throw new Error(
+              `Sin cupo en ${u.date} ${String(u.hour).padStart(
+                2,
+                "0"
+              )}:00 (used=${used}, inc=${u.inc})`
+            );
           }
           await tx.slotStock.upsert({
             where: { date_hour: { date: u.date, hour: u.hour } },
@@ -307,7 +510,10 @@ export async function POST(req: NextRequest) {
             update: { used: used + u.inc },
           });
         }
-        await tx.reservation.update({ where: { id: reservation.id }, data: { status: STATUS_COMPLETED as any } });
+        await tx.reservation.update({
+          where: { id: reservation.id },
+          data: { status: STATUS_COMPLETED as any },
+        });
       }
 
       await tx.payment.create({
@@ -323,10 +529,17 @@ export async function POST(req: NextRequest) {
       });
     });
 
-    console.log("[WEBHOOK] discounted + payment recorded", { paymentId, topic, updates });
+    console.log("[WEBHOOK] discounted + payment recorded", {
+      paymentId,
+      topic,
+      updates,
+    });
     return NextResponse.json({ ok: true, discounted: true, updates, topic });
   } catch (e: any) {
     console.error("[WEBHOOK] error:", e);
-    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: e?.message || "error" },
+      { status: 500 }
+    );
   }
 }
