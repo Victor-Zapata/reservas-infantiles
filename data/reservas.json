@@ -288,5 +288,63 @@
       "terminos": true
     },
     "fecha": "2025-08-16T05:15:33.008Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "fh",
+        "dni": "435",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "ghk",
+      "dni": "4563",
+      "telefono": "4563",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "no",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T00:42:02.335Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "prueba importante domingo 21:58",
+        "dni": "4534",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "ghil",
+      "dni": "4534",
+      "telefono": "453",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T00:58:16.912Z"
   }
 ]

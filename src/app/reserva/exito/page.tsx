@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Payment = {
@@ -54,11 +54,38 @@ const currency = (v: number) =>
 
 export default function ExitoPage() {
   const sp = useSearchParams();
-  const resId = sp.get("res"); // lo mandamos en back_urls (external_reference)
+  const resId = sp.get("res");
+
+  // IDs que trae MP en la URL de retorno
+  const qPaymentId =
+    sp.get("payment_id") || sp.get("collection_id") || null;
+  const qMerchantOrderId =
+    sp.get("merchant_order_id") || sp.get("merchant_order") || null;
+  const qStatus = (
+    sp.get("status") || sp.get("collection_status") || ""
+  ).toLowerCase();
+
   const [loading, setLoading] = useState(true);
+  const [reconciling, setReconciling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resv, setResv] = useState<ReservationDTO | null>(null);
+  const [justReconciled, setJustReconciled] = useState(false);
 
+  const cancelledRef = useRef(false);
+  useEffect(() => {
+    cancelledRef.current = false;
+    return () => { cancelledRef.current = true; };
+  }, []);
+
+  const fetchReservation = async (id: string) => {
+    const r = await fetch(`/api/reservations/${id}`, { cache: "no-store" });
+    const j = await r.json();
+    if (!r.ok || !j?.ok)
+      throw new Error(j?.error || "No pudimos cargar la reserva.");
+    return j.reservation as ReservationDTO;
+  };
+
+  // Cargar reserva
   useEffect(() => {
     (async () => {
       try {
@@ -68,18 +95,12 @@ export default function ExitoPage() {
           setLoading(false);
           return;
         }
-
-        const r = await fetch(`/api/reservations/${id}`, { cache: "no-store" });
-        const j = await r.json();
-        if (!r.ok || !j?.ok) {
-          setError(j?.error || "No pudimos cargar la reserva.");
-          setLoading(false);
-          return;
-        }
-
-        setResv(j.reservation as ReservationDTO);
+        const data = await fetchReservation(id);
+        if (cancelledRef.current) return;
+        setResv(data);
         setLoading(false);
       } catch (e: any) {
+        if (cancelledRef.current) return;
         setError(e?.message || "Error inesperado");
         setLoading(false);
       }
@@ -91,11 +112,93 @@ export default function ExitoPage() {
     [resv]
   );
 
+  // 🔁 Finalizar (reconciliar) si:
+  //  - hay resId (id de reserva)
+  //  - hay payment_id o merchant_order_id en la URL
+  //  - y aún no hay pagos approved en la reserva
+  useEffect(() => {
+    (async () => {
+      const id = resId || localStorage.getItem("reservationId") || "";
+      if (!id) return;
+
+      const qPaymentId =
+        sp.get("payment_id") || sp.get("collection_id") || null;
+      const qMerchantOrderId =
+        sp.get("merchant_order_id") || sp.get("merchant_order") || null;
+      const qStatus =
+        (sp.get("status") || sp.get("collection_status") || "").toLowerCase();
+
+      // 👉 ya NO exigimos qStatus===approved
+      if (!qPaymentId && !qMerchantOrderId) {
+        console.log("[EXITO] no hay payment_id ni merchant_order_id en la URL, no finalizo");
+        return;
+      }
+      if (approved.length > 0) {
+        console.log("[EXITO] ya hay pagos approved, no finalizo");
+        return;
+      }
+
+      const maxAttempts = 12; // ~18s con 1.5s de espera
+      const delayMs = 1500;
+
+      const run = async (attempt = 1): Promise<void> => {
+        if (cancelledRef.current) return;
+        setReconciling(true);
+        try {
+          console.log("[EXITO] FINALIZE attempt", attempt, {
+            id, qPaymentId, qMerchantOrderId, qStatus
+          });
+
+          const r = await fetch(`/api/payments/finalize?res=${encodeURIComponent(id)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              paymentId: qPaymentId,
+              merchantOrderId: qMerchantOrderId,
+              reservationId: id,
+              statusFromReturn: qStatus, // se usa en el fallback de staging
+            }),
+          });
+
+          const j = await r.json().catch(() => ({} as any));
+          console.log("[EXITO] FINALIZE resp", r.status, j);
+
+          if (r.status === 200 && j?.ok) {
+            const data = await fetchReservation(id);
+            if (cancelledRef.current) return;
+            setResv(data);
+            setJustReconciled(true);
+            setReconciling(false);
+            return;
+          }
+
+          if ((r.status === 202 || j?.retry) && attempt < maxAttempts) {
+            setTimeout(() => run(attempt + 1), delayMs);
+            return;
+          }
+
+          setReconciling(false);
+        } catch (e) {
+          console.warn("[EXITO] FINALIZE error", e);
+          if (attempt < maxAttempts) {
+            setTimeout(() => run(attempt + 1), delayMs);
+            return;
+          }
+          setReconciling(false);
+        }
+      };
+
+      run(1);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resId, approved.length]);
+
+
+
   return (
     <div className="kids-form">
       <div className="row justify-content-center">
         <div className="col-lg-8">
-          {/* Hero / título */}
           <div className="text-center mb-4">
             <h1 className="kids-heading">¡Reserva confirmada!</h1>
             <p className="kids-subheading">
@@ -104,7 +207,6 @@ export default function ExitoPage() {
             </p>
           </div>
 
-          {/* Estados de carga/errores */}
           {loading && (
             <div className="alert alert-info">
               Cargando los detalles de tu reserva…
@@ -112,12 +214,23 @@ export default function ExitoPage() {
           )}
           {error && <div className="alert alert-danger">{error}</div>}
 
+          {reconciling && !loading && (
+            <div className="alert alert-warning">
+              Validando el pago con Mercado Pago…
+            </div>
+          )}
+
+          {justReconciled && (
+            <div className="alert alert-success">
+              ¡Pago validado! Actualizamos tu reserva.
+            </div>
+          )}
+
           {resv && (
             <div className="card shadow-sm">
               <div className="card-body">
                 <h5 className="card-title">Resumen del turno</h5>
 
-                {/* Datos principales */}
                 <div className="row g-3">
                   <div className="col-md-6">
                     <div className="kids-section-title mb-1">Fecha y hora</div>
@@ -131,7 +244,6 @@ export default function ExitoPage() {
                   </div>
                 </div>
 
-                {/* Niños */}
                 <div className="mt-4">
                   <div className="kids-section-title mb-2">Niños/as</div>
                   <ul className="list-group">
@@ -157,7 +269,6 @@ export default function ExitoPage() {
                   </ul>
                 </div>
 
-                {/* Totales */}
                 <div className="mt-4">
                   <div className="kids-section-title mb-2">Costos</div>
                   <ul className="list-group">
@@ -188,13 +299,12 @@ export default function ExitoPage() {
                   </ul>
                 </div>
 
-                {/* Pagos recibidos */}
                 <div className="mt-4">
                   <div className="kids-section-title mb-2">Pagos</div>
                   {approved.length === 0 ? (
                     <div className="alert alert-warning mb-0">
                       Aún no registramos pagos aprobados. Si ya pagaste, se
-                      actualizará en breve.
+                      actualizará en breve{reconciling ? "…" : "."}
                     </div>
                   ) : (
                     <ul className="list-group">
@@ -222,7 +332,6 @@ export default function ExitoPage() {
                   )}
                 </div>
 
-                {/* CTA */}
                 <div className="text-center mt-4">
                   <a className="btn btn-kids" href="/">
                     Volver al inicio
