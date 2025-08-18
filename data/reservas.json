@@ -346,5 +346,92 @@
       "terminos": true
     },
     "fecha": "2025-08-18T00:58:16.912Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "y si es por acá?",
+        "dni": "75274",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "bngtuy",
+      "dni": "574412",
+      "telefono": "75217",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T02:07:25.341Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "cro que si corre",
+        "dni": "781",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "tnm",
+      "dni": "1786",
+      "telefono": "17821",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "si",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T02:09:50.310Z"
+  },
+  {
+    "niños": [
+      {
+        "nombre": "prueba exitosa?",
+        "dni": "87532",
+        "edad": 1,
+        "condiciones": "",
+        "tieneCondiciones": false,
+        "horas": 1
+      }
+    ],
+    "adulto": {
+      "nombre": "f,g",
+      "dni": "54732",
+      "telefono": "4523",
+      "retiraElMismo": true,
+      "contactoAlternativo": {
+        "nombre": "",
+        "dni": "",
+        "telefono": ""
+      }
+    },
+    "autorizaciones": {
+      "consentimiento": true,
+      "usoImagen": "no",
+      "terminos": true
+    },
+    "fecha": "2025-08-18T03:34:40.726Z"
   }
 ]
